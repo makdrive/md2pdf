@@ -10,6 +10,7 @@ Mermaid図表とPlantUML図表に対応し、美しい日本語フォントで�
 - 🎨 **美しい日本語**: BIZ UDPGothicフォントで読みやすい文書
 - ⚙️ **豊富なオプション**: PDFフォーマット、マージン、テーマなど
 - 🚀 **高速処理**: 図表の並列処理対応、TypeScript + Puppeteerによる効率的な変換
+- 📊 **進捗表示**: リアルタイムプログレスバーで変換進行状況を可視化
 
 ## 🚀 クイックスタート
 
@@ -95,6 +96,8 @@ Options:
   --footer <text>               ページフッター
   --mermaid-theme <theme>       Mermaidテーマ (default, dark, forest)
   --plantuml-jar <path>         PlantUMLのjarファイルパス
+  --no-progress                 プログレスバーを非表示
+  --progress-format <format>    プログレスバー表示形式
   -h, --help                    ヘルプを表示
 ```
 
@@ -118,6 +121,12 @@ npm run dev document.md -c 4
 
 # 高速処理（並列数を増加）
 npm run dev document.md -c 16
+
+# プログレスバーを非表示
+npm run dev document.md --no-progress
+
+# プログレスバーの表示形式をカスタマイズ
+npm run dev document.md --progress-format "変換中 |{bar}| {percentage}% | {stage}"
 ```
 
 ## 📊 対応図表
@@ -149,6 +158,40 @@ Bob -> Alice: Hi!
 ```
 
 **対応形式**: シーケンス図、クラス図、アクティビティ図、ユースケース図など
+
+## 📊 プログレス表示
+
+md2pdfはリアルタイムプログレスバーで変換進行状況を可視化します。
+
+### 機能
+
+- **デフォルト表示**: プログレスバーがデフォルトで表示されます
+- **リアルタイム更新**: 図表処理中も進捗がリアルタイムで更新
+- **詳細な進行状況**: 各処理ステップの状況を表示
+  - ファイル読み込み
+  - Markdown解析
+  - 図表処理（個別の図表ごと）
+  - HTML生成
+  - PDF生成
+
+### プログレスバーの制御
+
+```bash
+# デフォルト: プログレスバー表示
+npm run dev document.md
+
+# プログレスバーを非表示
+npm run dev document.md --no-progress
+
+# カスタム表示形式
+npm run dev document.md --progress-format "進捗 |{bar}| {percentage}% | {stage}"
+```
+
+### 表示例
+
+```
+Progress |████████████████████| 100% | Completed mermaid diagram: flowchart-1 (3/5)
+```
 
 ## ⚡ パフォーマンス
 

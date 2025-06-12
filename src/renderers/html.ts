@@ -1,4 +1,4 @@
-import { ParseResult, Config } from '../types';
+import { ParseResult, Config, ProgressCallback } from '../types';
 import { DiagramRenderer } from './diagram';
 
 export class HtmlRenderer {
@@ -10,12 +10,12 @@ export class HtmlRenderer {
     this.diagramRenderer = new DiagramRenderer(config);
   }
 
-  public async render(parseResult: ParseResult): Promise<string> {
+  public async render(parseResult: ParseResult, progressCallback?: ProgressCallback): Promise<string> {
     const { html, diagrams, metadata } = parseResult;
     const title = metadata.title || 'Document';
 
     // 図表を処理
-    const renderedDiagrams = await this.diagramRenderer.renderDiagrams(diagrams);
+    const renderedDiagrams = await this.diagramRenderer.renderDiagrams(diagrams, progressCallback);
 
     // HTML内の図表プレースホルダーを実際の画像に置換
     let processedHtml = html;

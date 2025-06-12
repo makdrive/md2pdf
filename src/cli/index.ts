@@ -22,6 +22,8 @@ program
   .option('--mermaid-theme <theme>', 'Mermaid theme (default, dark, forest)', 'default')
   .option('--plantuml-jar <path>', 'path to PlantUML jar file')
   .option('-c, --concurrency <number>', 'maximum number of diagrams to process in parallel', '8')
+  .option('--no-progress', 'disable progress bar during conversion')
+  .option('--progress-format <format>', 'progress bar format', 'Progress |{bar}| {percentage}% | {stage}')
   .action(async (input: string, options) => {
     try {
       // 出力ファイル名を決定
@@ -45,6 +47,10 @@ program
             timeout: 30000,
           },
           concurrency: parseInt(options.concurrency, 10) || 8,
+        },
+        progress: {
+          enabled: !options.noProgress,
+          format: options.progressFormat || 'Progress |{bar}| {percentage}% | {stage}',
         },
       };
 

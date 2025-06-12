@@ -56,6 +56,16 @@ node dist/cli/index.js -c 4 <input.md> <output.pdf>   # 4個並列
 node dist/cli/index.js -c 16 <input.md> <output.pdf>  # 16個並列
 ```
 
+### プログレス表示オプション
+
+```bash
+# プログレスバーを非表示（デフォルトは表示）
+node dist/cli/index.js --no-progress <input.md> <output.pdf>
+
+# プログレスバーの表示形式をカスタマイズ
+node dist/cli/index.js --progress-format "処理中 |{bar}| {percentage}% | {stage}" <input.md> <output.pdf>
+```
+
 ### その他オプション
 
 - `-o, --output`: 出力ファイル名
@@ -63,6 +73,8 @@ node dist/cli/index.js -c 16 <input.md> <output.pdf>  # 16個並列
 - `-m, --margin`: ページマージン
 - `--mermaid-theme`: Mermaidテーマ（default, dark, forest）
 - `--plantuml-jar`: PlantUMLのjarファイルパス
+- `--no-progress`: プログレスバーを非表示にする
+- `--progress-format`: プログレスバーの表示形式を指定
 
 ### 性能テスト
 

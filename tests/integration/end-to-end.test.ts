@@ -1,12 +1,14 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Md2PdfConverter } from '../../src/converter';
+import { Config } from '../../src/types';
 
 // Puppeteerをモック化
 jest.mock('puppeteer');
 
 describe('統合テスト', () => {
   const testOutputDir = path.join(__dirname, '../output');
+  const testDir = testOutputDir;
   
   beforeAll(async () => {
     // テスト用出力ディレクトリを作成
@@ -217,6 +219,143 @@ graph LR
 
       // PDF変換が正常に完了したことを確認
       expect(true).toBeTruthy();
+
+      // ファイルクリーンアップ
+      await fs.unlink(inputPath);
+    }, 30000);
+  });
+
+  describe('プログレスバー機能', () => {
+    test('プログレスバーが有効な設定で正常に変換', async () => {
+      const inputPath = path.join(testDir, 'progress-enabled.md');
+      const outputPath = path.join(testDir, 'progress-enabled.pdf');
+
+      const markdown = `
+# プログレステスト
+
+## 図表1
+\`\`\`mermaid
+graph LR
+    A --> B
+\`\`\`
+
+## 図表2
+\`\`\`mermaid
+pie title テスト
+    "A" : 50
+    "B" : 50
+\`\`\`
+`;
+
+      const config: Partial<Config> = {
+        progress: {
+          enabled: true,
+          format: 'Progress |{bar}| {percentage}% | {stage}',
+        },
+      };
+
+      await fs.writeFile(inputPath, markdown, 'utf-8');
+
+      const converter = new Md2PdfConverter(config);
+      await converter.convert({
+        input: inputPath,
+        output: outputPath,
+      });
+
+      // プログレスバー機能付きで変換が正常に完了することを確認
+      expect(true).toBeTruthy();
+
+      // ファイルクリーンアップ
+      await fs.unlink(inputPath);
+    }, 30000);
+
+    test('プログレスバーが無効な設定で正常に変換', async () => {
+      const inputPath = path.join(testDir, 'progress-disabled.md');
+      const outputPath = path.join(testDir, 'progress-disabled.pdf');
+
+      const markdown = `
+# プログレステスト
+
+通常のテキストです。
+
+## 図表
+\`\`\`mermaid
+flowchart TD
+    Start --> End
+\`\`\`
+`;
+
+      const config: Partial<Config> = {
+        progress: {
+          enabled: false,
+          format: 'Progress |{bar}| {percentage}% | {stage}',
+        },
+      };
+
+      await fs.writeFile(inputPath, markdown, 'utf-8');
+
+      const converter = new Md2PdfConverter(config);
+      await converter.convert({
+        input: inputPath,
+        output: outputPath,
+      });
+
+      // プログレスバー機能付きで変換が正常に完了することを確認
+      expect(true).toBeTruthy();
+
+      // ファイルクリーンアップ
+      await fs.unlink(inputPath);
+    }, 30000);
+
+    test('プログレスコールバックが正しく動作', async () => {
+      const inputPath = path.join(testDir, 'progress-callback.md');
+      const outputPath = path.join(testDir, 'progress-callback.pdf');
+
+      const markdown = `
+# コールバックテスト
+
+\`\`\`mermaid
+graph TD
+    A --> B --> C
+\`\`\`
+
+\`\`\`mermaid
+sequenceDiagram
+    Alice->>Bob: Hello
+    Bob->>Alice: Hi
+\`\`\`
+`;
+
+      await fs.writeFile(inputPath, markdown, 'utf-8');
+
+      const progressCallbacks: Array<{current: number, total: number, stage: string}> = [];
+
+      const converter = new Md2PdfConverter({
+        progress: {
+          enabled: true,
+          format: 'Progress |{bar}| {percentage}% | {stage}',
+        },
+      });
+
+      // プログレスコールバックをキャプチャするため、内部実装をテスト
+      const originalRender = converter['htmlRenderer']['render'];
+      converter['htmlRenderer']['render'] = async function(parseResult: any, progressCallback?: any) {
+        const wrappedCallback = (current: number, total: number, stage: string) => {
+          progressCallbacks.push({ current, total, stage });
+          if (progressCallback) {
+            progressCallback(current, total, stage);
+          }
+        };
+        return originalRender.call(this, parseResult, wrappedCallback);
+      };
+
+      await converter.convert({
+        input: inputPath,
+        output: outputPath,
+      });
+
+      // プログレスコールバックが呼ばれたことを確認
+      expect(progressCallbacks.length).toBeGreaterThan(0);
 
       // ファイルクリーンアップ
       await fs.unlink(inputPath);

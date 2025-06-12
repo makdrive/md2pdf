@@ -21,6 +21,10 @@ export interface Config {
     };
     concurrency?: number; // 並列処理の最大数（デフォルト: 8）
   };
+  progress?: {
+    enabled: boolean; // プログレスバーの表示有無
+    format: string; // プログレスバーの表示形式
+  };
 }
 
 export interface DiagramBlock {
@@ -44,4 +48,8 @@ export interface ConversionOptions {
   input: string;
   output: string;
   config?: Partial<Config>;
+}
+
+export interface ProgressCallback {
+  (current: number, total: number, stage: string): void;
 }

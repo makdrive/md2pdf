@@ -1,4 +1,4 @@
-import { DiagramBlock, Config } from '../types';
+import { DiagramBlock, Config, ProgressCallback } from '../types';
 import { MermaidProcessor } from '../parsers/mermaid';
 import { PlantUMLProcessor } from '../parsers/plantuml';
 
@@ -13,9 +13,20 @@ export class DiagramRenderer {
     this.plantUMLProcessor = new PlantUMLProcessor(config);
   }
 
-  public async renderDiagrams(diagrams: DiagramBlock[]): Promise<Map<string, string>> {
+  public async renderDiagrams(diagrams: DiagramBlock[], progressCallback?: ProgressCallback): Promise<Map<string, string>> {
     const renderedDiagrams = new Map<string, string>();
     const concurrency = this.config.diagrams.concurrency || 8;
+    const totalDiagrams = diagrams.length;
+    let processedCount = 0;
+
+    // プログレスカウンターを安全に更新する関数
+    const updateProgress = (diagramType: string, diagramId: string, isError: boolean = false) => {
+      processedCount++;
+      if (progressCallback) {
+        const status = isError ? 'Error processing' : 'Completed';
+        progressCallback(processedCount, totalDiagrams, `${status} ${diagramType} diagram: ${diagramId}`);
+      }
+    };
 
     // 並列処理を制限するためのバッチ処理
     const results: { id: string; path: string }[] = [];
@@ -25,6 +36,11 @@ export class DiagramRenderer {
       
       // バッチ内の図表を並列処理
       const batchPromises = batch.map(async (diagram) => {
+        // 図表処理開始をプログレスに通知
+        if (progressCallback) {
+          progressCallback(processedCount, totalDiagrams, `Starting ${diagram.type} diagram: ${diagram.id}`);
+        }
+
         try {
           let imagePath: string;
 
@@ -39,6 +55,9 @@ export class DiagramRenderer {
               imagePath = this.createPlaceholder(diagram.id, 'Unsupported diagram type');
           }
 
+          // 図表処理完了時に即座にプログレスを更新
+          updateProgress(diagram.type, diagram.id);
+
           return { id: diagram.id, path: imagePath };
         } catch (error) {
           console.error(`Failed to render diagram ${diagram.id}:`, error);
@@ -46,6 +65,10 @@ export class DiagramRenderer {
             diagram.id, 
             `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
           );
+          
+          // エラー時も即座にプログレスを更新
+          updateProgress(diagram.type, diagram.id, true);
+
           return { id: diagram.id, path: errorPath };
         }
       });

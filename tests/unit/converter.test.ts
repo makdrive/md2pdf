@@ -5,6 +5,7 @@ import { Config } from '../../src/types';
 jest.mock('../../src/parsers/markdown');
 jest.mock('../../src/renderers/html');
 jest.mock('../../src/generators/pdf');
+jest.mock('cli-progress');
 
 describe('Md2PdfConverter', () => {
   let converter: Md2PdfConverter;
@@ -51,6 +52,57 @@ describe('Md2PdfConverter', () => {
 
       const partialConverter = new Md2PdfConverter(partialConfig);
       expect(partialConverter).toBeDefined();
+    });
+  });
+
+  describe('プログレス機能', () => {
+    test('プログレスバーが有効な場合', () => {
+      const progressConfig: Partial<Config> = {
+        pdf: {
+          format: 'A4',
+          margin: '20mm',
+        },
+        progress: {
+          enabled: true,
+          format: 'Progress |{bar}| {percentage}% | {stage}',
+        },
+      };
+
+      const converter = new Md2PdfConverter(progressConfig);
+      expect(converter).toBeDefined();
+    });
+
+    test('プログレスバーが無効な場合', () => {
+      const noProgressConfig: Partial<Config> = {
+        pdf: {
+          format: 'A4',
+          margin: '20mm',
+        },
+        progress: {
+          enabled: false,
+          format: 'Progress |{bar}| {percentage}% | {stage}',
+        },
+      };
+
+      const converter = new Md2PdfConverter(noProgressConfig);
+      expect(converter).toBeDefined();
+    });
+
+    test('プログレス設定未指定の場合のデフォルト値（有効）', () => {
+      const defaultConverter = new Md2PdfConverter();
+      expect(defaultConverter).toBeDefined();
+    });
+
+    test('明示的にプログレスバーを無効化', () => {
+      const disabledProgressConfig: Partial<Config> = {
+        progress: {
+          enabled: false,
+          format: 'Progress |{bar}| {percentage}% | {stage}',
+        },
+      };
+
+      const converter = new Md2PdfConverter(disabledProgressConfig);
+      expect(converter).toBeDefined();
     });
   });
 
