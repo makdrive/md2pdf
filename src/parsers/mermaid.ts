@@ -10,13 +10,48 @@ export class MermaidProcessor {
   }
 
   private async getBrowser(): Promise<Browser> {
-    if (!this.browser) {
+    try {
+      // ブラウザが既に存在し、接続されているか確認
+      if (this.browser && this.browser.isConnected()) {
+        return this.browser;
+      }
+      
+      // 既存のブラウザインスタンスをクリーンアップ
+      if (this.browser) {
+        try {
+          await this.browser.close();
+        } catch (e) {
+          console.warn('Failed to close existing browser:', e);
+        }
+        this.browser = undefined;
+      }
+      
+      // 新しいブラウザインスタンスを起動
       this.browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--no-zygote',
+          '--single-process'
+        ],
+        timeout: 30000
       });
+      
+      // ブラウザプロセスの異常終了を監視
+      this.browser.on('disconnected', () => {
+        console.warn('Browser disconnected');
+        this.browser = undefined;
+      });
+      
+      return this.browser;
+    } catch (error) {
+      console.error('Failed to launch browser:', error);
+      this.browser = undefined;
+      throw error;
     }
-    return this.browser;
   }
 
   public async processMermaidBlock(block: DiagramBlock): Promise<string> {
@@ -32,10 +67,14 @@ export class MermaidProcessor {
       await page.setViewport({ width: 1400, height: 800 });
 
       try {
+        // タイムアウトを設定
+        page.setDefaultTimeout(20000);
+        page.setDefaultNavigationTimeout(20000);
+        
         // Mermaidを含むHTMLページを作成
         const html = this.createMermaidHtml(block.source);
         
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.setContent(html, { waitUntil: 'networkidle0', timeout: 20000 });
         
         // フォントの読み込み完了を待機
         await page.evaluate(() => {
@@ -99,7 +138,12 @@ export class MermaidProcessor {
         
         return `data:image/svg+xml;base64,${base64Svg}`;
       } finally {
-        await page.close();
+        // ページを確実にクローズ
+        try {
+          await page.close();
+        } catch (e) {
+          console.warn('Failed to close page:', e);
+        }
       }
     } catch (error) {
       console.error(`Failed to process Mermaid diagram ${block.id}:`, error);
@@ -178,11 +222,30 @@ export class MermaidProcessor {
   public async cleanup(): Promise<void> {
     try {
       if (this.browser) {
+        // すべてのページを取得してクローズ
+        const pages = await this.browser.pages();
+        await Promise.all(pages.map(page => 
+          page.close().catch(e => console.warn('Failed to close page during cleanup:', e))
+        ));
+        
+        // ブラウザをクローズ
         await this.browser.close();
         this.browser = undefined;
       }
     } catch (error) {
       console.warn('Failed to cleanup Mermaid processor:', error);
+      // 強制的にブラウザプロセスを終了
+      if (this.browser) {
+        try {
+          const process = this.browser.process();
+          if (process) {
+            process.kill('SIGKILL');
+          }
+        } catch (e) {
+          console.warn('Failed to kill browser process:', e);
+        }
+        this.browser = undefined;
+      }
     }
   }
 }
