@@ -11,6 +11,10 @@
     "dev": "ts-node src/cli/index.ts",
     "start": "node dist/cli/index.js",
     "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "clean": "rimraf dist"
   },
