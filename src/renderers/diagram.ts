@@ -15,31 +15,49 @@ export class DiagramRenderer {
 
   public async renderDiagrams(diagrams: DiagramBlock[]): Promise<Map<string, string>> {
     const renderedDiagrams = new Map<string, string>();
+    const concurrency = this.config.diagrams.concurrency || 8;
 
-    for (const diagram of diagrams) {
-      try {
-        let imagePath: string;
+    // 並列処理を制限するためのバッチ処理
+    const results: { id: string; path: string }[] = [];
+    
+    for (let i = 0; i < diagrams.length; i += concurrency) {
+      const batch = diagrams.slice(i, i + concurrency);
+      
+      // バッチ内の図表を並列処理
+      const batchPromises = batch.map(async (diagram) => {
+        try {
+          let imagePath: string;
 
-        switch (diagram.type) {
-          case 'mermaid':
-            imagePath = await this.mermaidProcessor.processMermaidBlock(diagram);
-            break;
-          case 'plantuml':
-            imagePath = await this.plantUMLProcessor.processPlantUMLBlock(diagram);
-            break;
-          default:
-            imagePath = this.createPlaceholder(diagram.id, 'Unsupported diagram type');
+          switch (diagram.type) {
+            case 'mermaid':
+              imagePath = await this.mermaidProcessor.processMermaidBlock(diagram);
+              break;
+            case 'plantuml':
+              imagePath = await this.plantUMLProcessor.processPlantUMLBlock(diagram);
+              break;
+            default:
+              imagePath = this.createPlaceholder(diagram.id, 'Unsupported diagram type');
+          }
+
+          return { id: diagram.id, path: imagePath };
+        } catch (error) {
+          console.error(`Failed to render diagram ${diagram.id}:`, error);
+          const errorPath = this.createPlaceholder(
+            diagram.id, 
+            `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+          return { id: diagram.id, path: errorPath };
         }
+      });
 
-        renderedDiagrams.set(diagram.id, imagePath);
-      } catch (error) {
-        console.error(`Failed to render diagram ${diagram.id}:`, error);
-        const errorPath = this.createPlaceholder(
-          diagram.id, 
-          `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-        renderedDiagrams.set(diagram.id, errorPath);
-      }
+      // バッチの処理が完了するまで待機
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
+    }
+
+    // 結果をMapに格納
+    for (const result of results) {
+      renderedDiagrams.set(result.id, result.path);
     }
 
     return renderedDiagrams;
