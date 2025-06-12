@@ -65,42 +65,77 @@ System -> User: レスポンス
 ```
 
 ```plantuml
-@startuml
-title 電卓ワイヤーフレーム
-
-rectangle "電卓" {
-    rectangle "ディスプレイ" as display
-    rectangle "ボタンパネル" {
-        rectangle "数字ボタン" {
-            rectangle "0"
-            rectangle "1"
-            rectangle "2"
-            rectangle "3"
-            rectangle "4"
-            rectangle "5"
-            rectangle "6"
-            rectangle "7"
-            rectangle "8"
-            rectangle "9"
-        }
-        rectangle "演算子ボタン" {
-            rectangle "+"
-            rectangle "-"
-            rectangle "*"
-            rectangle "/"
-        }
-        rectangle "機能ボタン" {
-            rectangle "C" as clear
-            rectangle "=" as equals
-        }
-    }
+@startsalt
+{＋
+  電卓ワイヤーフレーム
+  ==
+  { "                    0 " }
+  --
+  {
+    [C ] | [± ] | [% ] | [÷ ]
+    [7 ] | [8 ] | [9 ] | [× ]
+    [4 ] | [5 ] | [6 ] | [− ]
+    [1 ] | [2 ] | [3 ] | [＋]
+    [0 ] | [. ] | [＝]
+  }
 }
+@endsalt
+```
 
-display -down-> ボタンパネル
-ボタンパネル -down-> clear
-ボタンパネル -down-> equals
+### ガントチャートのサンプル
 
-@enduml
+#### Mermaidのガントチャート
+
+```mermaid
+gantt
+    title プロジェクトスケジュール
+    dateFormat YYYY-MM-DD
+    axisFormat %m/%d
+    section 設計フェーズ
+    要件定義           :a1, 2024-01-01, 10d
+    基本設計           :a2, after a1, 15d
+    詳細設計           :a3, after a2, 20d
+    section 開発フェーズ
+    実装               :b1, after a3, 30d
+    単体テスト         :b2, after b1, 10d
+    結合テスト         :b3, after b2, 15d
+    section リリース
+    システムテスト     :c1, after b3, 10d
+    本番リリース準備   :c2, after c1, 5d
+    本番リリース       :milestone, after c2, 0d
+```
+
+#### PlantUMLのガントチャート
+
+```plantuml
+@startgantt
+project starts 2024-01-01
+saturday are closed
+sunday are closed
+
+-- 設計フェーズ --
+[要件定義] lasts 1 weeks
+[基本設計] lasts 1 weeks
+[基本設計] starts at [要件定義]'s end
+[詳細設計] lasts 2 weeks
+[詳細設計] starts at [基本設計]'s end
+
+-- 開発フェーズ --
+[実装] lasts 3 weeks
+[実装] starts at [詳細設計]'s end
+[単体テスト] lasts 1 weeks
+[単体テスト] starts at [実装]'s end
+[結合テスト] lasts 1 weeks
+[結合テスト] starts at [単体テスト]'s end
+
+-- リリース --
+[システムテスト] lasts 1 weeks
+[システムテスト] starts at [結合テスト]'s end
+[本番リリース準備] lasts 3 days
+[本番リリース準備] starts at [システムテスト]'s end
+
+[本番リリース] happens at [本番リリース準備]'s end
+@endgantt
 ```
 
 ---

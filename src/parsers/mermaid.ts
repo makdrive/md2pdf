@@ -27,6 +27,9 @@ export class MermaidProcessor {
     try {
       const browser = await this.getBrowser();
       const page = await browser.newPage();
+      
+      // ビューポートサイズを設定
+      await page.setViewport({ width: 1400, height: 800 });
 
       try {
         // Mermaidを含むHTMLページを作成
@@ -125,10 +128,12 @@ export class MermaidProcessor {
             display: inline-block;
             margin: 0 auto;
             text-align: center;
+            min-width: 1200px;
         }
         .mermaid svg {
             display: block;
             margin: 0 auto;
+            max-width: none !important;
         }
     </style>
 </head>
