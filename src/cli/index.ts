@@ -21,6 +21,7 @@ program
   .option('--footer <text>', 'page footer text')
   .option('--mermaid-theme <theme>', 'Mermaid theme (default, dark, forest)', 'default')
   .option('--plantuml-jar <path>', 'path to PlantUML jar file')
+  .option('-c, --concurrency <number>', 'maximum number of diagrams to process in parallel', '8')
   .action(async (input: string, options) => {
     try {
       // 出力ファイル名を決定
@@ -43,6 +44,7 @@ program
             jarPath: options.plantumlJar,
             timeout: 30000,
           },
+          concurrency: parseInt(options.concurrency, 10) || 8,
         },
       };
 
@@ -54,6 +56,8 @@ program
         config,
       });
 
+      // 正常終了時は明示的にプロセスを終了
+      process.exit(0);
     } catch (error) {
       console.error('Error:', error instanceof Error ? error.message : String(error));
       process.exit(1);
