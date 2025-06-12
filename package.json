@@ -1,7 +1,7 @@
 {
   "name": "md2pdf",
   "version": "1.0.0",
-  "description": "Convert Markdown files to PDF with Mermaid and PlantUML support",
+  "description": "High-performance Markdown to PDF converter with parallel diagram processing, supporting Mermaid and PlantUML",
   "main": "dist/index.js",
   "bin": {
     "md2pdf": "dist/cli/index.js"
@@ -24,7 +24,11 @@
     "mermaid",
     "plantuml",
     "converter",
-    "cli"
+    "cli",
+    "parallel",
+    "performance",
+    "typescript",
+    "diagram"
   ],
   "author": "makdrive",
   "license": "MIT",

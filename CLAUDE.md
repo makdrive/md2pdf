@@ -31,17 +31,53 @@ node dist/cli/index.js <input.md> <output.pdf>
 npm run dev <input.md> <output.pdf>
 ```
 
+### テスト実行
+
+```bash
+npm test                    # 全テスト実行
+npm run test:unit          # 単体テストのみ  
+npm run test:integration   # 統合テストのみ
+npm run test:coverage      # カバレッジ付き
+```
+
 ## 重要な注意事項
 
 - このプロジェクトはTypeScript/Node.jsで実装されています
 - CLIツールのエントリーポイントは`dist/cli/index.js`です（ビルド後）
 - ソースコードは`src/`ディレクトリにあります
 
+## CLIオプション
+
+### 並列処理制御
+
+```bash
+# 並列数を指定（デフォルト: 8）
+node dist/cli/index.js -c 4 <input.md> <output.pdf>   # 4個並列
+node dist/cli/index.js -c 16 <input.md> <output.pdf>  # 16個並列
+```
+
+### その他オプション
+
+- `-o, --output`: 出力ファイル名
+- `-f, --format`: PDFフォーマット（A4, Letter, Legal）
+- `-m, --margin`: ページマージン
+- `--mermaid-theme`: Mermaidテーマ（default, dark, forest）
+- `--plantuml-jar`: PlantUMLのjarファイルパス
+
+### 性能テスト
+
+```bash
+# 20個の図表を含むサンプルで性能測定
+node dist/cli/index.js performance-test.md -c 8
+```
+
 ## プロジェクト構成
 
 - `src/`: TypeScriptソースコード
 - `dist/`: ビルド後のJavaScriptファイル
+- `tests/`: テストコード（単体・統合テスト）
 - `plantuml.jar`: PlantUML図表生成用のJARファイル
+- `performance-test.md`: 性能テスト用サンプル（20個の図表）
 - `temp/`: 一時ファイル用ディレクトリ
 
 ## 依存関係

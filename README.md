@@ -9,7 +9,7 @@ Mermaid図表とPlantUML図表に対応し、美しい日本語フォントで�
 - 📊 **図表対応**: Mermaid・PlantUML図表をSVG形式で高品質出力
 - 🎨 **美しい日本語**: BIZ UDPGothicフォントで読みやすい文書
 - ⚙️ **豊富なオプション**: PDFフォーマット、マージン、テーマなど
-- 🚀 **高速処理**: TypeScript + Puppeteerによる効率的な変換
+- 🚀 **高速処理**: 図表の並列処理対応、TypeScript + Puppeteerによる効率的な変換
 
 ## 🚀 クイックスタート
 
@@ -90,6 +90,7 @@ Options:
   -o, --output <file>           出力PDFファイル名
   -f, --format <format>         PDFフォーマット (A4, Letter, Legal)
   -m, --margin <margin>         ページマージン (例: 20mm)
+  -c, --concurrency <number>    図表処理の並列数 (デフォルト: 8)
   --header <text>               ページヘッダー
   --footer <text>               ページフッター
   --mermaid-theme <theme>       Mermaidテーマ (default, dark, forest)
@@ -111,6 +112,12 @@ npm run dev document.md -f A4 -m 25mm --mermaid-theme dark
 
 # ヘッダー・フッターを追加
 npm run dev document.md --header "技術仕様書" --footer "Page {pageNumber}"
+
+# 並列処理数を調整（図表が多い場合）
+npm run dev document.md -c 4
+
+# 高速処理（並列数を増加）
+npm run dev document.md -c 16
 ```
 
 ## 📊 対応図表
@@ -142,6 +149,39 @@ Bob -> Alice: Hi!
 ```
 
 **対応形式**: シーケンス図、クラス図、アクティビティ図、ユースケース図など
+
+## ⚡ パフォーマンス
+
+### 並列処理
+
+md2pdfは図表処理の並列実行に対応しており、複数の図表を含むドキュメントを高速で処理できます。
+
+```bash
+# 並列数の調整例
+npm run dev document.md -c 4   # 4個並列（低負荷）
+npm run dev document.md -c 8   # 8個並列（デフォルト、推奨）
+npm run dev document.md -c 16  # 16個並列（高速、高負荷）
+```
+
+**推奨設定**:
+- **4個並列**: メモリ使用量を抑えたい場合
+- **8個並列**: 標準的な使用（デフォルト）
+- **16個以上**: 図表が多く高速処理したい場合
+
+### パフォーマンステスト
+
+性能テスト用のサンプルが含まれています：
+
+```bash
+# 20個の図表を含むテストファイルで性能測定
+npm run dev performance-test.md -c 8
+
+# 並列数4での測定
+npm run dev performance-test.md -c 4
+
+# 並列数16での測定
+npm run dev performance-test.md -c 16
+```
 
 ## 🎨 フォント
 
@@ -193,6 +233,18 @@ npm run build
 
 # 開発モード（ファイル監視）
 npm run dev
+
+# テスト実行
+npm test
+
+# 単体テストのみ
+npm run test:unit
+
+# 統合テストのみ
+npm run test:integration
+
+# カバレッジ付きテスト
+npm run test:coverage
 
 # リント
 npm run lint
