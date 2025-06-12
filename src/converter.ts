@@ -41,14 +41,22 @@ export class Md2PdfConverter {
       
       console.log(`PDF generated successfully: ${options.output}`);
       
-      // PDFが生成された後にクリーンアップ
-      await this.htmlRenderer.cleanup();
     } catch (error) {
       console.error('Conversion failed:', error);
       throw error;
     } finally {
-      // PDF生成器のクリーンアップ
-      await this.pdfGenerator.close();
+      // 必ずクリーンアップを実行
+      try {
+        await this.htmlRenderer.cleanup();
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup HTML renderer:', cleanupError);
+      }
+      
+      try {
+        await this.pdfGenerator.close();
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup PDF generator:', cleanupError);
+      }
     }
   }
 
@@ -66,6 +74,7 @@ export class Md2PdfConverter {
         plantuml: {
           timeout: 30000,
         },
+        concurrency: 8,
       },
     };
 
@@ -74,6 +83,7 @@ export class Md2PdfConverter {
       diagrams: {
         mermaid: { ...defaultConfig.diagrams.mermaid, ...userConfig.diagrams?.mermaid },
         plantuml: { ...defaultConfig.diagrams.plantuml, ...userConfig.diagrams?.plantuml },
+        concurrency: userConfig.diagrams?.concurrency ?? defaultConfig.diagrams.concurrency,
       },
     };
   }

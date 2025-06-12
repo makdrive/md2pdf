@@ -19,6 +19,7 @@ export interface Config {
       jarPath?: string;
       timeout: number;
     };
+    concurrency?: number; // 並列処理の最大数（デフォルト: 8）
   };
 }
 
